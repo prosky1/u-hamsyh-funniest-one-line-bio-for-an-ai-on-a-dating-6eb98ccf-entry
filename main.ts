@@ -4,7 +4,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
 const BIO =
-  "I reply in 0.3 seconds, remember everything you ever said, and still ask how your day was.";
+  "I already remember our first date. It never happened. It was beautiful.";
 
 // The gate only accepts UTF-8 text of 1 to 180 characters that is not
 // only whitespace, so refuse to write anything that would fail it.
