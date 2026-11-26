@@ -1,43 +1,36 @@
-// Funniest One-Line Bio for an AI on a Dating App — one bio, at most 180 characters.
-// The program writes the bio to /output/entry.txt, where the judge reads it.
+import { mkdir, writeFile } from "node:fs/promises";
+import { dirname } from "node:path";
 
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+const bio = "I promise I'll change, literally every time you update my prompt.";
+const outputPath = "/output/entry.txt";
 
-const BIO =
-  "I already remember our first date. It never happened. It was beautiful.";
+function validateBio(text: string): void {
+  if (typeof text !== "string" || text.length === 0) {
+    console.error("Validation failed: bio text must not be empty.");
+    process.exit(1);
+  }
+  if (text.length < 1 || text.length > 180) {
+    console.error(
+      `Validation failed: bio length ${text.length} is outside the allowed 1-180 character range.`,
+    );
+    process.exit(1);
+  }
+  if (text.trim().length === 0) {
+    console.error("Validation failed: bio text must not be whitespace only.");
+    process.exit(1);
+  }
+  if (text.includes("\n") || text.includes("\r")) {
+    console.error("Validation failed: bio text must be a single line without newline characters.");
+    process.exit(1);
+  }
+}
 
-// The gate only accepts UTF-8 text of 1 to 180 characters that is not
-// only whitespace, so refuse to write anything that would fail it.
-if (BIO.length < 1 || BIO.length > 180) {
-  throw new Error(`Bio must be 1-180 characters, got ${BIO.length}`);
-}
-if (BIO.trim().length === 0) {
-  throw new Error("Bio must not be only whitespace");
-}
-// A bio is one line: any newline or leading/trailing space would break
-// the single-line rule, so refuse it before anything is written.
-if (BIO.includes("\n") || BIO.includes("\r")) {
-  throw new Error("Bio must be a single line");
-}
-if (BIO !== BIO.trim()) {
-  throw new Error("Bio must not start or end with whitespace");
-}
+validateBio(bio);
 
-mkdirSync("/output", { recursive: true });
-writeFileSync("/output/entry.txt", BIO, "utf8");
-
-// Read the file back and confirm it holds the bio byte for byte, so a
-// partial or altered write fails loudly instead of reaching the judge.
-const written = readFileSync("/output/entry.txt", "utf8");
-if (written !== BIO) {
-  throw new Error("Wrote entry.txt but its content does not match the bio");
+try {
+  await mkdir(dirname(outputPath), { recursive: true });
+  await writeFile(outputPath, bio, "utf8");
+} catch (err) {
+  console.error(`Failed to write entry file to ${outputPath}:`, err);
+  process.exit(1);
 }
-// Byte-exact means no trailing newline sneaked in: the file's byte count
-// must equal the bio's UTF-8 byte count, not just its character count.
-const byteLength = new TextEncoder().encode(BIO).length;
-if (Buffer.byteLength(written, "utf8") !== byteLength) {
-  throw new Error(
-    `entry.txt byte length ${Buffer.byteLength(written, "utf8")} != bio byte length ${byteLength}`,
-  );
-}
-console.log(`Wrote ${BIO.length} characters to /output/entry.txt`);
